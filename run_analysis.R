@@ -1,3 +1,17 @@
+# function to read data from txt and join essential columns; requires library(plyr)
+readAndJoin <- function(parentDirectory, features, activity_labels){
+  X_test <- read.table(paste(parentDirectory,'/X_', parentDirectory, '.txt', sep = ""))
+  y_test <- read.table(paste(parentDirectory,'/y_', parentDirectory, '.txt', sep = ""))
+  subject <- read.table(paste(parentDirectory,'/subject_', parentDirectory, '.txt', sep = ""))
+  names(X_test) <- features$V2
+  bindedXY <- cbind(X_test, y_test)
+  joined <- join(bindedXY, activity_labels)
+  bindedDataset <<- rbind(joined, bindedDataset)
+  bindedSubject <<- rbind(subject, bindedSubject)
+}
+
+library(plyr)
+# create working directory, download data zip there, unzip data and set working directory
 if(!file.exists("data")){
   dir.create("data")
 }
@@ -7,31 +21,20 @@ unzip("./data/Dataset.zip", exdir = "./data")
 UCI_HAR_Dataset <- list.dirs("./data", recursive = F)
 setwd(UCI_HAR_Dataset)
 
+# filter features-column according to the task (mean&std variables)
 features <- read.table('features.txt')
 filteredFeatures <- features[grep("(mean|std)\\(", features[,2]),]
-
 activity_labels <- read.table('activity_labels.txt')
+# this dataset will contains result
+bindedDataset <- data.frame()
+bindedSubject <- data.frame()
+# perform joins with procedure (see above)
+readAndJoin('test', features, activity_labels)
+readAndJoin('train', features, activity_labels)
 
-X_test <- read.table('test/X_test.txt')
-y_test <- read.table('test/y_test.txt')
-subject_test <- read.table('test/subject_test.txt')
-names(X_test) <- features$V2
-bindedXY <- cbind(X_test, y_test)
-joinedActivityLabesBindedXYTest <- join(bindedXY, activity_labels)
-
-X_train <- read.table('train/X_train.txt')
-y_train <- read.table('train/y_train.txt')
-subject_train <- read.table('train/subject_train.txt')
-
-names(X_train) <- features$V2
-bindedXY <- cbind(X_train, y_train)
-joinedActivityLabesBindedXYTrain <- join(bindedXY, activity_labels)
-
-merged <- rbind(joinedActivityLabesBindedXYTest, joinedActivityLabesBindedXYTrain)
-subject <- rbind(subject_test, subject_train)
-
-activity_subject <- cbind(merged$V2, subject)
-
-filtered <- cbind(merged[,filteredFeatures$V1], merged$V2)
-result <- cbind(activity_subject, filtered)
-averages <- aggregate(merged, by = list(Activity = result[,result$Activity], Subject = result[,result$Subject]), mean)
+activity_subject <- cbind(bindedDataset$V2, bindedSubject)
+colnames(activity_subject) <- c("Activity", "Subject")
+# result for task 1-4 
+result <- cbind(activity_subject, bindedDataset)
+# averages for task 5
+averages <- aggregate(bindedDataset, by = list(Activity = activity_subject$Activity,Subject = activity_subject$Subject), mean)
