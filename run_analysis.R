@@ -38,4 +38,4 @@ colnames(activity_subject) <- c("Activity", "Subject")
 result <- cbind(activity_subject, bindedDataset)
 # averages for task 5
 averages <- aggregate(bindedDataset, by = list(Activity = activity_subject$Activity,Subject = activity_subject$Subject), mean)
-write.table(averages, file = 'averages.txt'  row.names = F)
+write.table(averages, file = 'averages.txt', row.names = F)
