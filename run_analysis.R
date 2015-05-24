@@ -31,10 +31,11 @@ bindedSubject <- data.frame()
 # perform joins with procedure (see above)
 readAndJoin('test', features, activity_labels)
 readAndJoin('train', features, activity_labels)
-
+# bind subject/activity columns
 activity_subject <- cbind(bindedDataset$V2, bindedSubject)
 colnames(activity_subject) <- c("Activity", "Subject")
 # result for task 1-4 
 result <- cbind(activity_subject, bindedDataset)
 # averages for task 5
 averages <- aggregate(bindedDataset, by = list(Activity = activity_subject$Activity,Subject = activity_subject$Subject), mean)
+write.table(averages, file = 'averages.txt'  row.names = F)
